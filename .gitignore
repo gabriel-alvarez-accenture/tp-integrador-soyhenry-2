@@ -1,2 +1,4 @@
 src/python/dags/scheduler/
 src/python/dags/dag_processor_manager/
+src/python/dags/__pycache__/
+dag_id*
