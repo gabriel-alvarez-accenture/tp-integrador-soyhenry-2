@@ -17,7 +17,7 @@ deduplicated as (
 
 final as (
     select
-        {{ dbt_utils.generate_surrogate_key(['neighbourhood_group', 'neighbourhood']) }} as location_id,
+        row_number() over (order by neighbourhood_group, neighbourhood) as location_id,
         neighbourhood_group,
         neighbourhood
     from deduplicated
