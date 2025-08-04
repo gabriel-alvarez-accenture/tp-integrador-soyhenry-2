@@ -17,10 +17,12 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-  volumes:
+  volumes: # poner variables para que no sea directorio estatico
     - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/python/dags:/opt/airflow/dags
     - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/resources/csv:/opt/airflow/resources/csv
     - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/python/dags:/opt/airflow/logs
+    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/dbt_transformation:/opt/dbt
+    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/dbt_transformation/.dbt:/home/airflow/.dbt
     - ./plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -229,24 +231,6 @@ services:
       - airflow
     networks:
       - airflow-net
-
-  #flower:
-  #  <<: *airflow-common
-  #  command: celery flower
-  #  profiles:
-  #    - flower
-  #  ports:
-  #    - 5555:5555
-  #  healthcheck:
-  #    test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-  #    interval: 10s
-  #    timeout: 10s
-  #    retries: 5
-  #  restart: always
-  #  depends_on:
-  #    <<: *airflow-common-depends-on
-  #    airflow-init:
-  #      condition: service_completed_successfully
 
   postgres_db:
     image: postgres:latest

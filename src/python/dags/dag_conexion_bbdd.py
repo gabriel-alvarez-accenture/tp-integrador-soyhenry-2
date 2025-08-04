@@ -4,6 +4,7 @@ from datetime import datetime
 import psycopg2
 import pandas as pd
 from sqlalchemy import create_engine
+from airflow.operators.bash import BashOperator
 
 host = "postgres_container"
 port = "5432"
@@ -76,4 +77,10 @@ with DAG(
         python_callable=load_data,
     )
 
-    task_connection_db >> task_read_data >> task_load_data
+    task_dbt = BashOperator(
+        task_id='run_dbt',
+        bash_command='dbt run --project-dir /opt/dbt',
+    )
+
+    
+    task_connection_db >> task_read_data >> task_load_data >> task_dbt
