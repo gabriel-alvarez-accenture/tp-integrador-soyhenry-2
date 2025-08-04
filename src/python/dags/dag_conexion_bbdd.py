@@ -5,7 +5,7 @@ import psycopg2
 import pandas as pd
 from sqlalchemy import create_engine
 
-host = "postgres_containerxd"
+host = "postgres_container"
 port = "5432"
 dbname = "postgres"
 user = "postgres"
@@ -61,7 +61,7 @@ with DAG(
     tags=["soyhenry"],
 ) as dag:
 
-    task_conexion = PythonOperator(
+    task_connection_db = PythonOperator(
         task_id="connect_database",
         python_callable=connect_database,
     )
@@ -76,4 +76,4 @@ with DAG(
         python_callable=load_data,
     )
 
-    task_conexion >> task_read_data >> task_load_data
+    task_connection_db >> task_read_data >> task_load_data

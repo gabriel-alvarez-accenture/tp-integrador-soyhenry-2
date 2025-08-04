@@ -1,0 +1,20 @@
+{{ config(materialized='view') }}
+
+select
+    id,
+    name,
+    host_id,
+    host_name,
+    neighbourhood_group,
+    neighbourhood,
+    latitude,
+    longitude,
+    room_type,
+    price,
+    minimum_nights,
+    number_of_reviews,
+    last_review,
+    reviews_per_month,
+    calculated_host_listings_count,
+    availability_365
+from {{ source('public', 'AB_NYC') }}
