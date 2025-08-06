@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_pokemon
+    description: "Datos cargados desde la API de Pokemon"
+    columns:
+      - name: name
+        tests: [not_null, unique]
+      - name: types
+        tests: [not_null]
+      - name: height
+        description: "Altura del Pokemon"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+      - name: weight
+        description: "Peso del Pokemon"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false

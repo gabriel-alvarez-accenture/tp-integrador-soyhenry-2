@@ -173,4 +173,9 @@ with DAG(
         python_callable=load_data,
     )
 
-    task_check_db_and_api >> task_get_and_save_raw_data >> task_load_data
+    task_dbt_pokemon = BashOperator(
+        task_id='run_dbt_pokemon',
+        bash_command='dbt run --project-dir /opt/dbt',
+    )
+
+    task_check_db_and_api >> task_get_and_save_raw_data >> task_load_data >> task_dbt_pokemon

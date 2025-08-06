@@ -4,3 +4,4 @@ sources:
   - name: public
     tables:
       - name: AB_NYC
+      - name: pokemon
