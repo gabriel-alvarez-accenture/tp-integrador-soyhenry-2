@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from airflow.operators.bash import BashOperator
 from io import StringIO
 from sqlalchemy import text
+import os
 
 host = "postgres_container"
 port = "5432"
@@ -24,10 +25,11 @@ s3 = boto3.client(
     region_name='us-east-1'
 )
 
+csv_path = "/opt/airflow/resources/csv/AB_NYC.csv"
 
-def connect_database():
-    # Crear conexión
+def check_db_and_file():
     try:
+        print(f"Comenzando la prueba de conexion a la base de datos {dbname}")
         conn = psycopg2.connect(
             host=host,
             port=port,
@@ -35,81 +37,78 @@ def connect_database():
             user=user,
             password=password
         )
-
         print(f"Conexión exitosa a la base de datos {dbname}")
     except Exception as e:
         print(f"Error al conectar a la base de datos {dbname}:", e)
         raise
 
-def read_data():
-    csv_path = "/opt/airflow/resources/csv/AB_NYC.csv"
+    try:
+        print("Comenzando prueba para verificacion de existencia de archivo AB_NYC.csv")
+        if os.path.exists(csv_path):
+            print("El archivo existe.")
+        else:
+            raise FileNotFoundError("El archivo no fue encontrado.")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
 
+def read_and_save_raw_data():
     try:
         df = pd.read_csv(csv_path)
 
-        # Convertir el DataFrame a CSV en memoria
         csv_buffer = StringIO()
         df.to_csv(csv_buffer, index=False)
 
-        # Timestamp para la carpeta
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         key_name = f"caso-csv/{timestamp}/AB_NYC.csv"  
 
-        # Subir el archivo al bucket
         s3.put_object(
             Bucket='bucket-raw',
             Key=f"{key_name}",  
             Body=csv_buffer.getvalue()
         )
 
-
-        #print("Data cargada correctamente en el DataFrame")
         return key_name
     except Exception as e:
-        print("Error al leer el archivo CSV:", e)
+        print("Error al leer el archivo CSV para persistir los datos en la capa RAW (MinIO)", e)
         raise  
 
 def load_data(ti):
-    path_csv = ti.xcom_pull(task_ids="read_data")
-    db_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
-    
-    engine = create_engine(db_url)
-
-    # Obtener el objeto desde MinIO
-    response = s3.get_object(Bucket="bucket-raw", Key=path_csv)
-
-    # Leer el contenido como DataFrame
-    df = pd.read_csv(response['Body'])
-
-    print(df.head())
+    try:
+        path_csv = ti.xcom_pull(task_ids="read_data")
+        response = s3.get_object(Bucket="bucket-raw", Key=path_csv)
+        df = pd.read_csv(response['Body'])
+        print("Archivo leído correctamente desde MinIO")
+    except Exception as e:
+        print(f"Error al leer el archivo en MinIO: {e}")
 
     try:
+        db_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
+        engine = create_engine(db_url)
         with engine.begin() as conn:
             conn.execute(text('DELETE FROM "AB_NYC"'))
 
-
         df.to_sql("AB_NYC", engine, if_exists="append", index=False)
-        print("Datos cargados exitosamente en la tabla")
+        print(f"Datos cargados exitosamente en la base de datos en la tabla AB_NYC")
     except Exception as e:
-        print("Error al cargar datos:", e)
+        print("Error al cargar los datos en la base de datos:", e)
         raise  
 
 with DAG(
-    dag_id="dag_conexion_bbdd",
+    dag_id="dag_ELT_csv",
     start_date=datetime(2025, 1, 1),
     schedule_interval=None, 
     catchup=False,
     tags=["soyhenry"],
 ) as dag:
 
-    task_connection_db = PythonOperator(
-        task_id="connect_database",
-        python_callable=connect_database,
+    task_check_db_and_file = PythonOperator(
+        task_id="check_db_and_file",
+        python_callable=check_db_and_file,
     )
 
-    task_read_data = PythonOperator(
-        task_id="read_data",
-        python_callable=read_data,
+    task_read_and_save_raw_data = PythonOperator(
+        task_id="read_and_save_raw_data",
+        python_callable=read_and_save_raw_data,
     )
     
     task_load_data = PythonOperator(
@@ -123,4 +122,4 @@ with DAG(
     )
     
     
-    task_connection_db >> task_read_data >> task_load_data >> task_dbt
+    task_check_db_and_file >> task_read_and_save_raw_data >> task_load_data >> task_dbt
