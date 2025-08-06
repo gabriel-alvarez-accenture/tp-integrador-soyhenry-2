@@ -5,3 +5,4 @@ psycopg2-binary
 dbt-core
 dbt-postgres
 boto3
+python-dotenv

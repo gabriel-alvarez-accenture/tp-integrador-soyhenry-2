@@ -9,23 +9,35 @@ from airflow.operators.bash import BashOperator
 from io import StringIO
 from sqlalchemy import text
 import os
+from dotenv import load_dotenv
 
-host = "postgres_container"
-port = "5432"
-dbname = "postgres"
-user = "postgres"
-password = "postgres123"
 
-# Configurar el cliente de MinIO (usando boto3)
+dag_folder = os.path.dirname(__file__)
+env_path = os.path.join(dag_folder, ".env")
+load_dotenv(dotenv_path=env_path)
+
+# Acceder a las variables
+host = os.getenv("host")
+port = os.getenv("port")
+dbname = os.getenv("dbname")
+user = os.getenv("user")
+password = os.getenv("password")
+miniouser = os.getenv("miniouser")
+miniopassword = os.getenv("miniopassword")
+csv_path = os.getenv("csv_path")
+miniobucket = os.getenv("miniobucket")
+
+
+# Configurar el cliente de MinIO
 s3 = boto3.client(
     's3',
     endpoint_url='http://minio:9000',
-    aws_access_key_id='minioadmin',
-    aws_secret_access_key='minioadmin',
+    aws_access_key_id=miniouser,
+    aws_secret_access_key=miniopassword,
     region_name='us-east-1'
 )
 
-csv_path = "/opt/airflow/resources/csv/AB_NYC.csv"
+#csv_path = "/opt/airflow/resources/csv/AB_NYC.csv"
 
 def check_db_and_file():
     try:
@@ -74,8 +86,12 @@ def read_and_save_raw_data():
 
 def load_data(ti):
     try:
-        path_csv = ti.xcom_pull(task_ids="read_data")
-        response = s3.get_object(Bucket="bucket-raw", Key=path_csv)
+        print("111")
+        path_csv = ti.xcom_pull(task_ids="read_and_save_raw_data")
+        print("222")
+        print(f"key: {path_csv}")
+        response = s3.get_object(Bucket=miniobucket, Key=path_csv)
+        print("333")
         df = pd.read_csv(response['Body'])
         print("Archivo leído correctamente desde MinIO")
     except Exception as e:
