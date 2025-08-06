@@ -6,3 +6,4 @@ dbt-core
 dbt-postgres
 boto3
 python-dotenv
+requests
