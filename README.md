@@ -8,7 +8,9 @@ Durante este proceso se generan tablas de dimensiones y una tabla de hechos, lo 
 🌐 Caso 2: Consumo de API
 En este caso, los datos se obtienen desde una API externa. La consulta es totalmente parametrizable mediante el archivo de entorno .env, lo que evita el hardcodeo y permite una configuración flexible.
 Los datos extraídos se procesan para obtener una tabla única y refinada, lista para ser utilizada en análisis posteriores.
-==========================================================================================================================================
+
+
+
 🏗️ Arquitectura de los Datos
 Este proyecto se apoya en un stack moderno de herramientas que permiten construir una arquitectura robusta, escalable y trazable para procesos ELT.
 
@@ -27,7 +29,9 @@ Ofrece buena performance, fácil integración con el ecosistema de datos, y aña
 🐘 PostgreSQL
 PostgreSQL se utiliza como base de datos relacional por su rendimiento sólido, bajo costo y amplia compatibilidad con herramientas del stack.
 Es especialmente adecuado como motor SQL para transformaciones con DBT en entornos de tamaño medio, y también sirve como repositorio para las capas STAGING, CORE y CONSUMO.
-==========================================================================================================================================
+
+
+
 🧬 Capas de la Arquitectura de Datos
 La arquitectura de datos se organiza en capas bien definidas que permiten estructurar el pipeline ELT de forma clara, escalable y mantenible:
 
@@ -47,7 +51,9 @@ Las transformaciones se realizan con dbt, asegurando calidad, versionado y traza
 Aunque el proceso ELT finaliza en la capa CORE, PostgreSQL también alberga una capa de consumo.
 Aquí los usuarios finales pueden crear vistas, métricas y dashboards personalizados según sus necesidades.
 Facilita el acceso a la información de forma flexible y orientada al negocio.
-==========================================================================================================================================
+
+
+
 🐳 Cómo Ejecutar el Pipeline ELT con Docker
 Este proyecto utiliza un Dockerfile personalizado para construir un entorno de Airflow con todas las dependencias necesarias. A continuación, se detallan los pasos para ejecutar el pipeline completo:
 
