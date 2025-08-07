@@ -26,9 +26,11 @@ user = os.getenv("user")
 password = os.getenv("password")
 miniouser = os.getenv("miniouser")
 miniopassword = os.getenv("miniopassword")
-#csv_path = os.getenv("csv_path")
 miniobucket = os.getenv("miniobucket")
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+pokemon_str = os.getenv("pokemon_list", "")
+pokemon_list = pokemon_str.split(",") if pokemon_str else []
 
 
 # Configurar el cliente de MinIO
@@ -86,7 +88,6 @@ def check_db_and_api():
         logger.error(f"Error: {e}")
 
 def get_and_save_raw_data():
-    pokemon_list = ["pikachu", "bulbasaur"]
     data_rows = []
 
     try:

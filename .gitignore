@@ -4,4 +4,3 @@ src/python/dags/__pycache__/
 dag_id*
 *.log
 .gitkeep
-.env
