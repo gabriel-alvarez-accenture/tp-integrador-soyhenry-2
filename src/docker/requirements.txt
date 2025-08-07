@@ -7,3 +7,4 @@ dbt-postgres
 boto3
 python-dotenv
 requests
+pytest

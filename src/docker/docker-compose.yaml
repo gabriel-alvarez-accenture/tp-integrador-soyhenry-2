@@ -18,11 +18,12 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes: # poner variables para que no sea directorio estatico
-    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/python/dags:/opt/airflow/dags
-    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/resources/csv:/opt/airflow/resources/csv
-    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/python/dags:/opt/airflow/logs
-    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/dbt_transformation:/opt/dbt
-    - /c/Users/gabriel.b.alvarez/Desktop/tp-integrador-soyhenry-2/src/dbt_transformation/.dbt:/home/airflow/.dbt
+    - ${HOST_PATH}/src/python/dags:/opt/airflow/dags
+    - ${HOST_PATH}/src/python/tests:/opt/airflow/tests
+    - ${HOST_PATH}/resources/csv:/opt/airflow/resources/csv
+    - ${HOST_PATH}/src/python/dags:/opt/airflow/logs
+    - ${HOST_PATH}/src/dbt_transformation:/opt/dbt
+    - ${HOST_PATH}/src/dbt_transformation/.dbt:/home/airflow/.dbt
     - ./plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -36,8 +37,8 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+      POSTGRES_USER: ${POSTGRES_AIRFLOW_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_AIRFLOW_PASSWORD}
       POSTGRES_DB: airflow
     ports:
       - '5432:5432'
@@ -208,8 +209,8 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_UPGRADE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_WEBSERVER_USER}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_WEBSERVER_PASSWORD}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
@@ -237,8 +238,8 @@ services:
     container_name: postgres_container 
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres123
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - '5433:5432'
     volumes:
@@ -255,8 +256,8 @@ services:
     volumes:
       - minio_data:/data
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     command: server /data --console-address ":9001"
     networks:
       - airflow-net
